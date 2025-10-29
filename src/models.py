@@ -23,7 +23,7 @@ def buildModel(system_noise, sensor_noise, fault_bias=None, faulty_sensor=None):
         F = np.identity(2)
         Q = np.diag([system_noise, fault_bias])
         H = np.array([[1, 0] for _ in enumerate(sensor_noise)])
-        H[faulty_sensor, 1] = 1 # Don't understand this line, but it works, so don't touch it!
+        H[faulty_sensor, 1] = 1 # Don't understand the syntax for this line, but it works, so don't touch it!
         R = np.diag(sensor_noise)
         x_0 = np.zeros((2,1))
         p_0 = np.identity(2)

@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 from src.simulate import Simulation, Fault
 from src.models import buildModel
+from src.bayes import Bayesian
 
 
 # Parameters
@@ -14,8 +16,8 @@ fault_bias = 1
 spike_probability = 0.2
 spike_variance = 1
 
-# PreRun setup
-fault = Fault("bias", 200, 320, fault_bias, spike_probability, spike_variance)
+# setup Models
+fault = Fault("spike", 200, 320, fault_bias, spike_probability, spike_variance)
 
 models = [
     buildModel(system_noise, sensor_noise),
@@ -24,26 +26,22 @@ models = [
     buildModel(system_noise, sensor_noise, fault_bias, 2)
 ]
 
+fused = Bayesian(models)
+
 # Run simulation
 sim = Simulation(time, system_noise, sensor_noise, seed)
 x, y = sim.run(faulty_sensor, fault)
-estimates = [[],[],[],[]]
+
+fused_signal = []
+model_signals = [[] for _ in range(len(models))]
+weights_signal = []
 for t in range(time):
-    for i, sensor in enumerate(models):
-        sensor.predict()
-        y_t = y[:,t]
-        x, P, y_bar, S, K = sensor.update(y_t)
-        if i == 0:
-            estimates[i].append(float(x[0]))
-        else:
-            estimates[i].append(float(x[0][0]))
+    # Had an issue here. .reshape seems to have fixed it. Again, I don't really know Linear Algebra
+    z = y[:, t].reshape(-1, 1) 
+    x_fused, weights, x_estimates, logL = fused.step(z)
 
+    fused_signal.append(float(x_fused[0, 0]))
+    weights_signal.append(weights)
 
-# Plot
-plt.plot(sim.y[faulty_sensor], label="Faulty Sensor", alpha=0.5)
-for i, estimate in enumerate(estimates):
-    plt.plot(estimate, alpha=0.7, label=f"Model {i}", linewidth=2)
-plt.plot(sim.x, label="True Value")
-plt.legend()
-plt.title("Kalman Filter Sensors")
-plt.show()
+    for i, x_est in enumerate(x_estimates):
+        model_signals[i].append(float(x_est[0, 0]))
