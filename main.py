@@ -4,6 +4,7 @@ import numpy as np
 from src.simulate import Simulation, Fault
 from src.models import buildModel
 from src.bayes import Bayesian
+from src.plots import plot_estimates, plot_model_probabilities, plot_bias_estimatation
 
 
 # Parameters
@@ -17,7 +18,7 @@ spike_probability = 0.2
 spike_variance = 1
 
 # setup Models
-fault = Fault("spike", 200, 320, fault_bias, spike_probability, spike_variance)
+fault = Fault("bias", 200, 320, fault_bias, spike_probability, spike_variance)
 
 models = [
     buildModel(system_noise, sensor_noise),
@@ -45,3 +46,7 @@ for t in range(time):
 
     for i, x_est in enumerate(x_estimates):
         model_signals[i].append(float(x_est[0, 0]))
+
+plot_estimates(sim, fused_signal, model_signals, faulty_sensor)
+plot_model_probabilities(weights_signal)
+# plot_bias_estimatation(models, sim.x)
