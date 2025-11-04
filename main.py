@@ -1,6 +1,3 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
 from src.simulate import Simulation, Fault
 from src.models import buildModel
 from src.bayes import Bayesian
